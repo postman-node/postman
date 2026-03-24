@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<link rel="icon" type="image/png" href="https://media2.dev.to/dynamic/image/width=1280,height=720,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fres.cloudinary.com%2Fdhai0piiq%2Fimage%2Fupload%2Fv1573777740%2Fpostman-pro-tricks.jpg">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postman|Node </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #1C1C1C; color: #ADADAD; overflow: hidden; height: 100vh; }
+        .sidebar { width: 280px; background: #212121; border-right: 1px solid #333; transition: all 0.3s; }
+        .main-content { flex: 1; background: #1C1C1C; display: flex; flex-direction: column; position: relative; }
+        .editor-area { flex: 1; padding: 25px; font-family: 'Fira Code', monospace; font-size: 12px; overflow-y: auto; color: #D4D4D4; background: #181818; }
+        
+        /* Postman Blue & Orange Highlights */
+        .text-postman { color: #FF6C37; }
+        .bg-postman { background: #FF6C37; }
+        .border-postman { border-color: #FF6C37; }
+
+        /* Animation for real-time logs */
+        .log-entry { margin-bottom: 6px; border-left: 2px solid transparent; padding-left: 10px; opacity: 0; animation: fadeIn 0.3s forwards; }
+        .log-success { border-left-color: #4ade80; color: #4ade80; }
+        .log-info { border-left-color: #60a5fa; color: #60a5fa; }
+        .log-warn { border-left-color: #fbbf24; color: #fbbf24; }
+        
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        /* Advanced Modal Design */
+        .win-modal {
+            background: #2B2B2B;
+            border: 1px solid #444;
+            border-radius: 4px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            width: 480px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+
+        .input-win {
+            background: #141414;
+            border: 1px solid #555;
+            color: #4ade80;
+            padding: 12px;
+            border-radius: 4px;
+            width: 100%;
+            outline: none;
+            font-family: 'Fira Code', monospace;
+            margin-bottom: 20px;
+        }
+
+        .btn-action { background: #0665D0; color: white; padding: 10px 30px; border-radius: 3px; font-size: 12px; font-weight: 600; }
+        
+        .progress-ring { height: 4px; background: #333; border-radius: 10px; margin-top: 15px; position: relative; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #FF6C37, #FFB700); width: 0%; transition: width 0.5s ease; }
+    </style>
+</head>
+<body class="flex">
+
+    <aside class="sidebar flex flex-col">
+        <div class="p-4 flex items-center justify-between border-b border-[#333]">
+            <div class="flex items-center gap-2">
+                <img src="https://media2.dev.to/dynamic/image/width=1280,height=720,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fres.cloudinary.com%2Fdhai0piiq%2Fimage%2Fupload%2Fv1573777740%2Fpostman-pro-tricks.jpg" class="w-4 h-4 grayscale">
+                <span class="text-[11px] font-bold text-white uppercase tracking-tighter">Postman Requset Workspace</span>
+            </div>
+            <span class="text-[10px] bg-[#333] px-2 py-0.5 rounded text-white">LIVE</span>
+        </div>
+        <div class="p-4 space-y-4">
+            <div class="space-y-2">
+                <p class="text-[10px] font-bold text-[#666] uppercase">Collections</p>
+                <div class="text-xs text-white/80 hover:bg-[#2B2B2B] p-2 rounded cursor-pointer flex items-center gap-2">
+                    <span class="text-postman">▼</span> 📁 CTZ_GLOBAL_BYPASS
+                </div>
+                <div class="ml-4 text-[11px] text-[#999] p-1.5 border-l border-[#444] hover:text-white cursor-pointer">
+                    <span class="text-blue-400 uppercase font-bold mr-2">POST</span> Auth_Handshake
+                </div>
+                <div class="ml-4 text-[11px] text-white p-1.5 border-l-2 border-postman bg-[#2B2B2B] cursor-pointer">
+                    <span class="text-green-400 uppercase font-bold mr-2">GET</span> Cookie_Generator
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="h-10 bg-[#212121] flex items-center border-b border-[#333]">
+            <div class="px-4 h-full flex items-center bg-[#1C1C1C] border-t-2 border-postman text-xs text-white gap-2">
+                <span class="text-green-500 font-bold text-[10px]">GET</span>
+                <span>bypass_engine_v4.js</span>
+                <span class="text-[#555] ml-2">×</span>
+            </div>
+            <div class="px-4 text-[18px] text-[#555] cursor-pointer hover:text-white">+</div>
+        </div>
+
+        <div id="console" class="editor-area">
+            <div class="text-[#666] mb-4">// System Initialized at: <span id="clock"></span></div>
+        </div>
+
+        <div class="h-8 bg-[#212121] border-t border-[#333] px-4 flex items-center justify-between text-[10px] text-[#888]">
+            <div class="flex gap-4">
+                <span>Console: <b class="text-green-500">Connected</b></span>
+                <span>Node: <b class="text-blue-400">517.452.84.145</b></span>
+            </div>
+            <div class="flex gap-4">
+                <span id="sync-status">Handshaking...</span>
+                <span id="runtime-clock">00:00:00</span>
+            </div>
+        </div>
+    </main>
+
+    <div id="auth-modal" class="hidden">
+        <div class="win-modal p-10">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-postman rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </div>
+                <div>
+                    <h2 id="m-title" class="text-white font-bold text-sm uppercase tracking-widest">Identity Check</h2>
+                    <p class="text-[10px] text-[#777]">Authorized Personnel Only</p>
+                </div>
+            </div>
+            <p id="m-desc" class="text-xs text-[#999] mb-4">Node 517.452.84.145 is requesting validation.</p>
+            <input id="m-input" type="text" class="input-win" placeholder="">
+            <div class="flex justify-end gap-4">
+                <button onclick="processAuth()" class="btn-action shadow-lg shadow-blue-900/20">VALIDATE NODE</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const consoleEl = document.getElementById('console');
+        const modal = document.getElementById('auth-modal');
+        const mInput = document.getElementById('m-input');
+        const mDesc = document.getElementById('m-desc');
+        const syncStatus = document.getElementById('sync-status');
+        
+        let step = "USER";
+        let startTime = Date.now();
+
+        // Update Runtime Clock
+        setInterval(() => {
+            const diff = new Date(Date.now() - startTime);
+            document.getElementById('runtime-clock').innerText = diff.toISOString().substr(11, 8);
+            document.getElementById('clock').innerText = new Date().toLocaleString();
+        }, 1000);
+
+        const systemLogs = [
+            { t: "[SYSTEM] Booting Bypass Engine v4.0.2-pro...", s: "info" },
+            { t: "[NETWORK] Scanning for active proxy nodes in Malabe, SL...", s: "normal" },
+            { t: "[PROXY] Connected to Residential IP: 124.43.12.98", s: "success" },
+            { t: "[HTTP] GET https://cpatrafficzone.com/server/handshake", s: "normal" },
+            { t: "[DEBUG] Analyzing SSL Certificate: Issued to Cloudflare Inc", s: "normal" },
+            { t: "[WARN] 401 Unauthorized: Authorization Header Missing.", s: "warn" },
+            { t: "[SYSTEM] Waiting for Postman Username...", s: "info" }
+        ];
+
+        const idLogs = [
+            { t: "[AUTH] Username Accepted: CTZMAN", s: "success" },
+            { t: "[SYSTEM] Fetching Node Registry from 517.452.84.145...", s: "info" },
+            { t: "[NETWORK] Port Scanning: 8080, 443, 22... Open", s: "normal" },
+            { t: "[DEBUG] Node Response: 'POSTMAN_ID_REQUIRED'", s: "warn" }
+        ];
+
+        const bypassLogs = [
+            { t: "[AUTH] Node 517.452.84.145 Verified Successfully.", s: "success" },
+            { t: "[BYPASS] Injecting Cookie-Spoofing Payload...", s: "info" },
+            { t: "[SYSTEM] Extracting NID, c_user, xs, and datr tokens...", s: "normal" },
+            { t: "[NETWORK] Tunneling data through secure WebSocket...", s: "normal" },
+            { t: "[SUCCESS] Encryption keys synchronized with cpatrafficzone.com", s: "success" },
+            { t: "[SYSTEM] Redirecting to Dashboard Control Panel...", s: "info" }
+        ];
+
+        async function addLog(text, status) {
+            const div = document.createElement('div');
+            div.className = `log-entry ${status === 'info' ? 'log-info' : status === 'success' ? 'log-success' : status === 'warn' ? 'log-warn' : ''}`;
+            div.innerText = "> " + text;
+            consoleEl.appendChild(div);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+            await new Promise(r => setTimeout(r, 600));
+        }
+
+        async function runLogs(array) {
+            for (let log of array) {
+                await addLog(log.t, log.s);
+            }
+        }
+
+        window.onload = async () => {
+            await runLogs(systemLogs);
+            mDesc.innerText = "Enter authorized CTZMAN username to continue handshake.";
+            mInput.placeholder = "Username";
+            modal.classList.remove('hidden');
+        };
+
+        async function processAuth() {
+            const val = mInput.value;
+            if (step === "USER") {
+                if (val === "CTZMAN") {
+                    modal.classList.add('hidden');
+                    mInput.value = "";
+                    step = "ID";
+                    await runLogs(idLogs);
+                    mDesc.innerText = "Provide Node ID 517.452.84.145 for Global Sync.";
+                    mInput.placeholder = "Node ID";
+                    modal.classList.remove('hidden');
+                } else { alert("ACCESS DENIED: USER UNKNOWN"); }
+            } 
+            else if (step === "ID") {
+                if (val === "517.452.84.145") {
+                    modal.classList.add('hidden');
+                    await runLogs(bypassLogs);
+                    startFinalSync();
+                } else { alert("ACCESS DENIED: INVALID NODE ID"); }
+            }
+        }
+
+        function startFinalSync() {
+            syncStatus.innerText = "BYPASSING...";
+            const container = document.createElement('div');
+            container.className = "mt-6 border-t border-[#333] pt-6";
+            container.innerHTML = `
+                <div class="flex justify-between text-[10px] uppercase font-bold text-white mb-2">
+                    <span>Server Bypass Progress</span>
+                    <span id="p-val">0%</span>
+                </div>
+                <div class="progress-ring"><div id="p-fill" class="progress-bar-fill"></div></div>
+                <div id="p-status" class="text-[10px] mt-4 text-[#666] font-mono italic">Handshaking with cpatrafficzone.com...</div>
+            `;
+            consoleEl.appendChild(container);
+            
+            let progress = 0;
+            const fill = document.getElementById('p-fill');
+            const val = document.getElementById('p-val');
+            const status = document.getElementById('p-status');
+
+            const subMsgs = [
+                "Sending malicious headers...",
+                "Spoofing User-Agent to PostmanRuntime/7.26.8...",
+                "Bypassing Cloudflare WAF...",
+                "Capturing Session-Key 0x55FA...",
+                "Node ID 517.452.84.145 Linked.",
+                "Finalizing Pro Dashboard Access..."
+            ];
+
+            // විනාඩි 5 (තත්පර 300) ප්‍රොග්‍රස් එක
+            const interval = setInterval(() => {
+                progress += 1;
+                const percentage = (progress / 300) * 100;
+                fill.style.width = percentage + "%";
+                val.innerText = Math.round(percentage) + "%";
+                
+                if (progress % 50 === 0) {
+                    status.innerText = subMsgs[Math.floor(progress/50) - 1];
+                    addLog(`[SYNC] Node Heartbeat: ${Math.random().toString(16).substr(2, 8)}`, 'info');
+                }
+
+                if (progress >= 300) {
+                    clearInterval(interval);
+                    status.innerText = "BYPASS SUCCESSFUL. REDIRECTING...";
+                    setTimeout(() => window.location.href = "dashboard.html", 2000);
+                }
+            }, 1000); // 1000ms = 1s. 300s = 5 Minutes.
+        }
+    </script>
+</body>
+</html>

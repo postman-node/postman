@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<link rel="icon" type="image/png" href="https://media2.dev.to/dynamic/image/width=1280,height=720,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fres.cloudinary.com%2Fdhai0piiq%2Fimage%2Fupload%2Fv1573777740%2Fpostman-pro-tricks.jpg">
+
+
+
+
+
+
+
+
+
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postman | CGSNode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pm-bg: #1C1C1C;
+            --pm-sidebar: #212121;
+            --pm-border: #333333;
+            --pm-orange: #FF6C37;
+            --pm-blue: #0665D0;
+            --pm-red: #E74C3C;
+            --pm-green: #2ECC71;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--pm-bg);
+            color: #ADADAD;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            height: 44px;
+            background: var(--pm-sidebar);
+            border-bottom: 1px solid var(--pm-border);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            justify-content: space-between;
+        }
+
+        .app-layout { display: flex; flex: 1; overflow: hidden; }
+
+        .sidebar {
+            width: 260px;
+            background: var(--pm-sidebar);
+            border-right: 1px solid var(--pm-border);
+            font-size: 12px;
+        }
+
+        .main-editor {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--pm-bg);
+        }
+
+        .control-panel {
+            padding: 20px;
+            border-bottom: 1px solid var(--pm-border);
+            background: #252525;
+        }
+
+        .pm-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .pm-field {
+            background: #181818;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 3px;
+            outline: none;
+            width: 240px;
+        }
+
+        .pm-field.error-border { border-color: var(--pm-red); }
+
+        .btn-send {
+            background: var(--pm-blue);
+            color: white;
+            padding: 8px 25px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 3px;
+            transition: 0.2s;
+        }
+
+        .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .response-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tabs-header {
+            display: flex;
+            background: var(--pm-sidebar);
+            border-bottom: 1px solid var(--pm-border);
+            font-size: 11px;
+            padding-left: 10px;
+        }
+
+        .tab-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-active {
+            border-bottom: 2px solid var(--pm-orange);
+            color: #fff;
+        }
+
+        .json-viewer {
+            flex: 1;
+            padding: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            background: #181818;
+            color: #D4D4D4;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        .error-message {
+            color: var(--pm-red);
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid var(--pm-red);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 13px;
+        }
+
+        .profile-section {
+            border: 1px solid #333;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            background: #1e1e1e;
+        }
+
+        .profile-header {
+            background: #252525;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .profile-title {
+            color: var(--pm-orange);
+            font-weight: bold;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .btn-copy {
+            font-size: 10px;
+            background: transparent;
+            border: 1px solid #555;
+            color: #aaa;
+            padding: 2px 8px;
+            border-radius: 2px;
+            transition: 0.2s;
+        }
+
+        .btn-copy:hover {
+            border-color: var(--pm-blue);
+            color: white;
+            background: var(--pm-blue);
+        }
+
+        .progress-bar-container {
+            height: 3px;
+            width: 100%;
+            background: #333;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--pm-orange);
+            transition: width 1s linear;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="flex items-center gap-4">
+            <img src="https://media2.dev.to/dynamic/image/width=1280,height=720,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fres.cloudinary.com%2Fdhai0piiq%2Fimage%2Fupload%2Fv1573777740%2Fpostman-pro-tricks.jpg" class="w-4 h-4">
+            <span class="text-xs font-semibold text-white uppercase tracking-wider">Postman Cookie Engine</span>
+        </div>
+        <div class="text-[10px] text-pm-orange font-bold uppercase tracking-widest border border-pm-orange px-2 py-0.5 rounded">Handshake v10.5</div>
+    </div>
+
+    <div class="app-layout">
+        <aside class="sidebar p-4">
+            <div class="text-[10px] font-bold text-[#666] uppercase mb-4 tracking-widest">History</div>
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-[#999] hover:text-white cursor-pointer transition-colors">
+                    <span class="text-green-500 font-bold text-[9px]">GET</span> <span class="truncate">domain_validator</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-editor">
+            <div class="control-panel">
+                <div class="pm-input-group">
+                    <div>
+                        <label class="block text-[10px] text-[#888] mb-1 uppercase font-bold">Target Domain</label>
+                        <input id="domain-input" type="text" class="pm-field" value="facebook.com" placeholder="e.g. google.com">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-[#888] mb-1 uppercase font-bold">Profiles</label>
+                        <input id="quantity-input" type="number" class="pm-field w-20" value="5">
+                    </div>
+                    <button id="send-btn" onclick="generateAction()" class="btn-send">SEND / EXTRACT</button>
+                </div>
+            </div>
+
+            <div id="loading-bar" class="progress-bar-container">
+                <div id="fill" class="progress-fill"></div>
+            </div>
+
+            <div class="response-area">
+                <div class="tabs-header">
+                    <div class="tab-item tab-active">Body (JSON)</div>
+                    <div class="tab-item">Cookies</div>
+                    <div class="tab-item">Headers</div>
+                    <div class="tab-item">Tests</div>
+                </div>
+
+                <div id="json-display" class="json-viewer">
+                    <div id="error-box" class="error-message">
+                        <strong>Could not send request:</strong> <span id="error-text"></span>
+                    </div>
+                    <div id="idle-text" class="text-[#555] italic text-center mt-20 text-sm">// Status: IDLE. Waiting for request...</div>
+                    <div id="process-text" class="hidden text-blue-400 text-center mt-20 text-xs animate-pulse uppercase tracking-widest">Running deep exfiltration on cloud node 517.452.84.145...</div>
+                    <div id="output-list"></div>
+                </div>
+            </div>
+
+            <div class="h-8 bg-[#181818] border-t border-[#333] px-4 flex items-center justify-between text-[10px] text-[#666]">
+                <div>Status: <span id="status-text" class="text-white">STANDBY</span></div>
+                <div class="flex gap-4">
+                    <span id="timer-display">Wait Time: <b class="text-white">0s</b></span>
+                    <span>Time: <b id="response-time" class="text-white">0 ms</b></span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const jsonDisplay = document.getElementById('output-list');
+        const idleText = document.getElementById('idle-text');
+        const processText = document.getElementById('process-text');
+        const errorBox = document.getElementById('error-box');
+        const errorText = document.getElementById('error-text');
+        const loadingBar = document.getElementById('loading-bar');
+        const fill = document.getElementById('fill');
+        const statusText = document.getElementById('status-text');
+        const responseTime = document.getElementById('response-time');
+        const timerDisplay = document.getElementById('timer-display');
+        const sendBtn = document.getElementById('send-btn');
+        const domainInput = document.getElementById('domain-input');
+
+        function generateValue(length) {
+            const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+            let result = "";
+            for (let i = 0; i < length; i++) {
+                result += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+            return result;
+        }
+
+        // Domain Validation Function
+        function isValidDomain(domain) {
+            const pattern = /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/;
+            return pattern.test(domain);
+        }
+
+        async function generateAction() {
+            const domain = domainInput.value.trim();
+            const qty = parseInt(document.getElementById('quantity-input').value);
+
+            // Hide previous results/errors
+            jsonDisplay.innerHTML = "";
+            errorBox.style.display = 'none';
+            idleText.style.display = 'none';
+            domainInput.classList.remove('error-border');
+
+            // 1. Validation Check
+            if(!isValidDomain(domain)) {
+                domainInput.classList.add('error-border');
+                errorText.innerText = `Invalid Domain Format: '${domain}'. A valid domain must include a TLD (e.g., .com, .net). Please check and try again.`;
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            // UI Setup
+            sendBtn.disabled = true;
+            processText.classList.remove('hidden');
+            loadingBar.style.display = 'block';
+            statusText.innerText = "SENDING...";
+            fill.style.width = "0%";
+
+            // 2. 120 Seconds (2 Minutes) Timer
+            let duration = 5; // Seconds
+            let elapsed = 0;
+
+            const progressInterval = setInterval(async () => {
+                elapsed++;
+                let progress = (elapsed / duration) * 100;
+                fill.style.width = progress + "%";
+                timerDisplay.innerHTML = `Remaining: <b class="text-white">${duration - elapsed}s</b>`;
+
+                if (elapsed >= duration) {
+                    clearInterval(progressInterval);
+                    finishGeneration(domain, qty);
+                }
+            }, 1000);
+        }
+
+        function finishGeneration(domain, qty) {
+            processText.classList.add('hidden');
+            const formattedDomain = domain.startsWith('.') ? domain : `.${domain}`;
+
+            for(let p = 1; p <= qty; p++) {
+                const profileData = [
+                    { "name": "NID", "value": generateValue(150), "domain": formattedDomain, "path": "/", "expires": new Date(Date.now() + 15768000000).toISOString(), "httpOnly": true, "secure": true, "sameSite": "None" },
+                    { "name": "1P_JAR", "value": "2026-03-24-13", "domain": formattedDomain, "path": "/", "expires": new Date(Date.now() + 2592000000).toISOString(), "httpOnly": false, "secure": true, "sameSite": "None" },
+                    { "name": "AEC", "value": generateValue(80), "domain": formattedDomain, "path": "/", "expires": new Date(Date.now() + 15768000000).toISOString(), "httpOnly": true, "secure": true, "sameSite": "Lax" },
+                    { "name": "__Secure-3PSID", "value": generateValue(64), "domain": formattedDomain, "path": "/", "expires": new Date(Date.now() + 31536000000).toISOString(), "httpOnly": true, "secure": true, "sameSite": "None" }
+                ];
+
+                const section = document.createElement('div');
+                section.className = 'profile-section';
+                section.innerHTML = `
+                    <div class="profile-header">
+                        <span class="profile-title">Profile #${p} — ${domain}</span>
+                        <button class="btn-copy" onclick='copyToClipboard(this, ${JSON.stringify(profileData)})'>Copy JSON</button>
+                    </div>
+                    <div class="p-4 overflow-x-auto">
+                        <pre class="text-[#98c379]">${JSON.stringify(profileData, null, 4)}</pre>
+                    </div>
+                `;
+                jsonDisplay.appendChild(section);
+            }
+
+            statusText.innerText = "200 OK";
+            statusText.classList.add('text-green-500');
+            responseTime.innerText = "120.0s";
+            loadingBar.style.display = 'none';
+            sendBtn.disabled = false;
+        }
+
+        function copyToClipboard(btn, data) {
+            navigator.clipboard.writeText(JSON.stringify(data, null, 4)).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = "COPIED!";
+                btn.style.borderColor = "var(--pm-green)";
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.borderColor = "#555";
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
